@@ -53,7 +53,7 @@ Melalui *Business Understanding* ini, proyek sistem rekomendasi *content-based f
 
 Bagian ini menyajikan pemahaman mendalam tentang dataset yang digunakan dalam proyek sistem rekomendasi film ini. Dataset ini merupakan koleksi data rating film dan metadata yang komprehensif, sangat cocok untuk membangun dan mengevaluasi model rekomendasi berbasis pembelajaran mesin.
 
-Dataset ini terdiri dari 100,836 interaksi rating pengguna terhadap film dan metadata dari 9,742 film unik. Kondisi data relatif bersih dari nilai yang hilang pada kolom-kolom kunci yang akan digunakan untuk pemodelan.
+Dataset ini terdiri dari 100,836 interaksi rating pengguna terhadap film dan metadata dari 9,742 film unik. Kondisi data sangat baik; tidak ditemukan adanya *missing values* pada kolom-kolom penting yang akan digunakan, dan setelah pemeriksaan, tidak ada duplikasi data yang signifikan pada entri film atau rating yang memerlukan penanganan khusus di luar pembersihan genre.
 
 **Sumber Data:**
 Dataset ini dapat diunduh dari Kaggle, dengan tautan berikut: [https://www.kaggle.com/datasets/nicoletacilibiu/movies-and-ratings-for-recommendation-system](https://www.kaggle.com/datasets/nicoletacilibiu/movies-and-ratings-for-recommendation-system).
@@ -78,20 +78,19 @@ Dataset ini terbagi menjadi dua file utama: `movies.csv` yang berisi metadata fi
 Pemahaman terhadap struktur dan isi variabel-variabel ini sangat penting untuk tahapan *Data Preparation* dan *Modeling* selanjutnya dalam membangun sistem rekomendasi.
 
 ---
+---
 ## **Data Preparation**
-
-Tahap *Data Preparation* merupakan langkah krusial untuk mengubah data mentah menjadi format yang bersih dan siap untuk digunakan dalam proses pemodelan sistem rekomendasi. Tujuan utama dari tahap ini adalah untuk memastikan kualitas data, konsistensi, dan kesesuaian dengan kebutuhan algoritma *content-based filtering* yang akan digunakan.
-
-#### **Proses dan Teknik Data Preparation:**
-
 Proses persiapan data dilakukan secara berurutan melalui beberapa langkah utama:
 
 1.  **Pembersihan dan Transformasi Kolom `genres` pada `movies_df`**:
-    * **Teknik:** Penggantian nilai (`replace()`) dan aplikasi fungsi lambda (`apply()`).
-    * **Proses:**
-        * Nilai `'(no genres listed)'` pada kolom `genres` diganti dengan string kosong (`''`). Hal ini dilakukan untuk menyeragamkan representasi film yang tidak memiliki genre dan agar tidak mengganggu proses ekstraksi fitur berbasis teks.
-        * Karakter pemisah genre `|` pada kolom `genres` diubah menjadi spasi (` `). Ini menciptakan kolom baru bernama `clean_genres`.
-    * **Alasan:** `TfidfVectorizer` (yang akan digunakan dalam tahap *Modeling*) bekerja paling efektif dengan teks yang dipisahkan oleh spasi. Dengan mengubah `Adventure|Animation` menjadi `Adventure Animation`, setiap genre dianggap sebagai "kata" terpisah yang dapat dianalisis oleh TF-IDF. Pembersihan `(no genres listed)` mencegah pembentukan fitur yang tidak relevan.
+
+      * **Teknik:** Penggantian nilai (`replace()`) dan aplikasi fungsi lambda (`apply()`).
+      * **Proses:**
+          * Nilai `'(no genres listed)'` pada kolom `genres` diganti dengan string kosong (`''`). Hal ini dilakukan untuk menyeragamkan representasi film yang tidak memiliki genre dan agar tidak mengganggu proses ekstraksi fitur berbasis teks.
+          * Karakter pemisah genre `|` pada kolom `genres` diubah menjadi spasi (`     `). Ini menciptakan kolom baru bernama `clean_genres`.
+      * **Alasan:** `TfidfVectorizer` (yang akan digunakan dalam tahap *Modeling*) bekerja paling efektif dengan teks yang dipisahkan oleh spasi. Dengan mengubah `Adventure|Animation` menjadi `Adventure Animation`, setiap genre dianggap sebagai "kata" terpisah yang dapat dianalisis oleh TF-IDF. Pembersihan `(no genres listed)` mencegah pembentukan fitur yang tidak relevan.
+
+    <!-- end list -->
 
     ```python
     # Mengisi nilai "(no genres listed)" dengan string kosong
@@ -101,9 +100,12 @@ Proses persiapan data dilakukan secara berurutan melalui beberapa langkah utama:
     ```
 
 2.  **Pemeriksaan Film Tanpa Genre Setelah Preprocessing**:
-    * **Teknik:** Filtering DataFrame.
-    * **Proses:** Saya melakukan pemeriksaan untuk mengidentifikasi berapa banyak film yang, setelah proses pembersihan, berakhir tanpa genre terdaftar (`clean_genres` adalah string kosong).
-    * **Alasan:** Untuk memahami potensi dampak pada *content-based filtering*, karena film-film ini tidak akan memiliki fitur genre dan karenanya tidak akan berkontribusi pada atau direkomendasikan berdasarkan kemiripan genre. Dalam kasus ini, ditemukan 34 film tanpa genre.
+
+      * **Teknik:** Filtering DataFrame.
+      * **Proses:** Saya melakukan pemeriksaan untuk mengidentifikasi berapa banyak film yang, setelah proses pembersihan, berakhir tanpa genre terdaftar (`clean_genres` adalah string kosong).
+      * **Alasan:** Untuk memahami potensi dampak pada *content-based filtering*, karena film-film ini tidak akan memiliki fitur genre dan karenanya tidak akan berkontribusi pada atau direkomendasikan berdasarkan kemiripan genre. Dalam kasus ini, ditemukan 34 film tanpa genre.
+
+    <!-- end list -->
 
     ```python
     # Memeriksa apakah ada film tanpa genre setelah preprocessing
@@ -112,9 +114,12 @@ Proses persiapan data dilakukan secara berurutan melalui beberapa langkah utama:
     ```
 
 3.  **Penghapusan Kolom `timestamp` pada `ratings_df`**:
-    * **Teknik:** Penghapusan kolom (`drop()`).
-    * **Proses:** Kolom `timestamp` dihilangkan dari `ratings_df`.
-    * **Alasan:** Kolom `timestamp` menyimpan informasi waktu rating diberikan, yang tidak relevan secara langsung untuk pendekatan *content-based filtering* yang berfokus pada atribut item. Penghapusan kolom ini membantu mengurangi jejak memori dan menyederhanakan DataFrame tanpa menghilangkan informasi krusial untuk model yang akan dibangun.
+
+      * **Teknik:** Penghapusan kolom (`drop()`).
+      * **Proses:** Kolom `timestamp` dihilangkan dari `ratings_df`.
+      * **Alasan:** Kolom `timestamp` menyimpan informasi waktu rating diberikan, yang tidak relevan secara langsung untuk pendekatan *content-based filtering* yang berfokus pada atribut item. Penghapusan kolom ini membantu mengurangi jejak memori dan menyederhanakan DataFrame tanpa menghilangkan informasi krusial untuk model yang akan dibangun.
+
+    <!-- end list -->
 
     ```python
     # Menghilangkan kolom 'timestamp' dari ratings_df
@@ -122,11 +127,14 @@ Proses persiapan data dilakukan secara berurutan melalui beberapa langkah utama:
     ```
 
 4.  **Penggabungan DataFrame `ratings_df` dan `movies_df`**:
-    * **Teknik:** Penggabungan DataFrame (`pd.merge()`).
-    * **Proses:** Kedua DataFrame, `ratings_df` dan `movies_df`, digabungkan menjadi satu DataFrame bernama `df_merged` menggunakan `movieId` sebagai kunci penghubung (`how='left'`). Ini berarti semua rating akan digabungkan dengan informasi film yang sesuai.
-    * **Alasan:** Penggabungan ini penting untuk menciptakan satu sumber data terpadu. Meskipun fitur konten utama berasal dari `movies_df`, penggabungan ini memungkinkan kita untuk:
-        * Menghubungkan setiap rating pengguna dengan detail film yang relevan (judul dan genre).
-        * Memudahkan proses evaluasi model di kemudian hari, di mana kita perlu mengidentifikasi film yang disukai pengguna berdasarkan rating mereka.
+
+      * **Teknik:** Penggabungan DataFrame (`pd.merge()`).
+      * **Proses:** Kedua DataFrame, `ratings_df` dan `movies_df`, digabungkan menjadi satu DataFrame bernama `df_merged` menggunakan `movieId` sebagai kunci penghubung (`how='left'`). Ini berarti semua rating akan digabungkan dengan informasi film yang sesuai.
+      * **Alasan:** Penggabungan ini penting untuk menciptakan satu sumber data terpadu. Meskipun fitur konten utama berasal dari `movies_df`, penggabungan ini memungkinkan kita untuk:
+          * Menghubungkan setiap rating pengguna dengan detail film yang relevan (judul dan genre).
+          * Memudahkan proses evaluasi model di kemudian hari, di mana kita perlu mengidentifikasi film yang disukai pengguna berdasarkan rating mereka.
+
+    <!-- end list -->
 
     ```python
     # Menggabungkan movies_df dan ratings_df
@@ -134,9 +142,12 @@ Proses persiapan data dilakukan secara berurutan melalui beberapa langkah utama:
     ```
 
 5.  **Penanganan Nilai Hilang Setelah Penggabungan (Jika Ada)**:
-    * **Teknik:** Penghapusan baris (`dropna()`).
-    * **Proses:** Setelah penggabungan, dilakukan pemeriksaan apakah ada nilai `NaN` (Not a Number) yang muncul pada kolom `title` atau `genres` di `df_merged`. Jika ada, baris-baris tersebut akan dihapus.
-    * **Alasan:** Meskipun dataset aslinya relatif bersih, penggabungan dapat menciptakan `NaN` jika ada `movieId` di `ratings_df` yang tidak memiliki padanan di `movies_df`. Menghapus baris-baris ini memastikan konsistensi dan integritas data untuk pemodelan. Dalam kasus ini, tidak ada nilai `NaN` yang ditemukan, sehingga semua 100,836 entri rating berhasil dipasangkan dengan informasi film.
+
+      * **Teknik:** Penghapusan baris (`dropna()`).
+      * **Proses:** Setelah penggabungan, dilakukan pemeriksaan apakah ada nilai `NaN` (Not a Number) yang muncul pada kolom `title` atau `genres` di `df_merged`. Jika ada, baris-baris tersebut akan dihapus.
+      * **Alasan:** Meskipun dataset aslinya relatif bersih, penggabungan dapat menciptakan `NaN` jika ada `movieId` di `ratings_df` yang tidak memiliki padanan di `movies_df`. Menghapus baris-baris ini memastikan konsistensi dan integritas data untuk pemodelan. Dalam kasus ini, tidak ada nilai `NaN` yang ditemukan, sehingga semua 100,836 entri rating berhasil dipasangkan dengan informasi film.
+
+    <!-- end list -->
 
     ```python
     # Memeriksa dan menghilangkan baris dengan nilai NaN
@@ -144,9 +155,12 @@ Proses persiapan data dilakukan secara berurutan melalui beberapa langkah utama:
     ```
 
 6.  **Memastikan Konsistensi Kolom `clean_genres` di `df_merged` (Pencegahan)**:
-    * **Teknik:** Pengecekan kolom dan aplikasi fungsi.
-    * **Proses:** Sebuah pemeriksaan dilakukan untuk memastikan bahwa kolom `clean_genres` yang telah dibuat di `movies_df` juga tersedia dan konsisten di `df_merged`. Jika tidak (misalnya, jika kode dijalankan secara parsial), transformasi akan diterapkan kembali.
-    * **Alasan:** Untuk menjamin bahwa DataFrame final yang digunakan untuk analisis dan pemodelan selalu memiliki kolom `clean_genres` yang siap untuk TF-IDF.
+
+      * **Teknik:** Pengecekan kolom dan aplikasi fungsi.
+      * **Proses:** Sebuah pemeriksaan dilakukan untuk memastikan bahwa kolom `clean_genres` yang telah dibuat di `movies_df` juga tersedia dan konsisten di `df_merged`. Jika tidak (misalnya, jika kode dijalankan secara parsial), transformasi akan diterapkan kembali.
+      * **Alasan:** Untuk menjamin bahwa DataFrame final yang digunakan untuk analisis dan pemodelan selalu memiliki kolom `clean_genres` yang siap untuk TF-IDF.
+
+    <!-- end list -->
 
     ```python
     if 'clean_genres' not in df_merged.columns:
@@ -154,7 +168,24 @@ Proses persiapan data dilakukan secara berurutan melalui beberapa langkah utama:
         df_merged['clean_genres'] = df_merged['clean_genres'].replace('(no genres listed)', '')
     ```
 
+7.  **Ekstraksi Fitur Menggunakan TF-IDF (Persiapan Modeling)**:
+
+      * **Teknik:** Vektorisasi Teks (`TfidfVectorizer`).
+      * **Proses:** Setelah kolom `clean_genres` dipersiapkan, `TfidfVectorizer` digunakan untuk mengubah genre tekstual dari setiap film di `movies_df` menjadi representasi numerik dalam bentuk matriks TF-IDF. `stop_words='english'` digunakan untuk mengabaikan kata-kata umum.
+      * **Alasan:** Ini adalah langkah fundamental untuk *content-based filtering*. TF-IDF memberikan bobot numerik kepada setiap genre berdasarkan frekuensinya dalam satu film (Term Frequency) dan jarang tidaknya genre tersebut muncul di seluruh korpus film (Inverse Document Frequency). Matriks numerik ini (`tfidf_matrix`) adalah input yang diperlukan untuk menghitung kemiripan kosinus antar film. Matriks yang dihasilkan memiliki dimensi $(9742, 21)$, yang berarti 9742 film direpresentasikan oleh 21 fitur genre unik.
+
+    <!-- end list -->
+
+    ```python
+    # 1. Feature Extraction using TF-IDF
+    tfidf = TfidfVectorizer(stop_words='english')
+    tfidf_matrix = tfidf.fit_transform(movies_df['clean_genres'])
+    # print(f"\nShape of TF-IDF matrix: {tfidf_matrix.shape}")
+    ```
+
 Melalui langkah-langkah *Data Preparation* ini, data telah berhasil dibersihkan, ditransformasi, dan digabungkan menjadi format yang optimal, menjadikannya siap untuk tahap *Modeling* selanjutnya dalam pembangunan sistem rekomendasi.
+
+-----
 
 ---
 
